@@ -223,12 +223,24 @@ class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base 
     public function correct_response(question_attempt $qa) {
         $question = $qa->get_question();
 
+        // Put all correct answers (100% grade) into $right
+        $right = array();
         foreach ($question->answers as $ansid => $ans) {
             if (question_state::graded_state_for_fraction($ans->fraction) ==
                     question_state::$gradedright) {
+                $right[] = $question->make_html_inline($question->format_text($ans->answer, $ans->answerformat,
+                        $qa, 'question', 'answer', $ansid));
+            }
+        }
+
+        // Return appropriate string for single/multiple correct answer(s)
+        if (!empty($right)) {
+            if (count($right) == 1) {
                 return get_string('correctansweris', 'qtype_multichoice',
-                        $question->make_html_inline($question->format_text($ans->answer, $ans->answerformat,
-                                $qa, 'question', 'answer', $ansid)));
+                        implode(', ', $right));
+            } else {
+                return get_string('correctanswersare', 'qtype_multichoice',
+                        implode(', ', $right));
             }
         }
 
@@ -283,9 +295,15 @@ class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {
             }
         }
 
+        // Return appropriate string for single/multiple correct answer(s)
         if (!empty($right)) {
+            if (count($right) == 1) {
                 return get_string('correctansweris', 'qtype_multichoice',
                         implode(', ', $right));
+            } else {
+                return get_string('correctanswersare', 'qtype_multichoice',
+                        implode(', ', $right));
+            }
         }
         return '';
     }
